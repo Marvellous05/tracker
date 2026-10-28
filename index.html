@@ -2,57 +2,27 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101d35"><title>GlobalTrack | Shipment Movement Tracker</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<meta name="theme-color" content="#071b35">
+<meta name="description" content="Track your shipment journey across air, sea and road in one place.">
+<title>GlobalTrack | Shipment Tracking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header class="topbar">
-  <a class="brand" href="#"><span class="brandmark">◎</span><span><b>Global<span>Track</span></b><small>Every journey, clearly mapped.</small></span></a>
-  <nav><button class="navbtn active" data-view="track">Track shipment</button><button class="navbtn" data-view="admin">Admin portal</button></nav>
-</header>
+<header class="topbar"><a class="brand" href="./"><span class="brand-mark">G<span>↗</span></span><span>global<span class="brand-light">track</span><small>SHIPMENT VISIBILITY</small></span></a><nav><a href="#how">How it works</a><a href="#tracking">Track shipment</a><a class="nav-button" href="#tracking">Track a package <span>↗</span></a></nav><button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button></header>
 <main>
-<section id="trackView" class="view">
-  <div class="hero"><div><p class="eyebrow">SHIPMENT VISIBILITY</p><h1>Know where it’s going.</h1><p class="sub">Follow a shipment along its planned route, from origin to destination.</p></div><div class="hero-pill"><span class="pulse"></span> Route simulation <b>●</b></div></div>
-  <form id="trackForm" class="searchbar"><div class="searchicon">⌕</div><input id="trackingInput" placeholder="Enter a tracking number (e.g. GT-AB12CD)" autocomplete="off" required><button class="primary" type="submit">Track shipment <span>→</span></button></form>
-  <div id="emptyState" class="empty-state"><div class="empty-icon">⌖</div><h2>Your shipment journey starts here</h2><p>Enter a tracking number above to view its route, simulated current position, progress and estimated arrival.</p><button id="demoBtn" class="secondary">View sample journey</button></div>
-  <div id="trackingResult" class="tracking-layout hidden">
-    <aside class="panel shipment-panel">
-      <div class="panel-heading"><div><p class="eyebrow">SHIPMENT DETAILS</p><h2 id="itemName">Shipment</h2></div><span id="statusPill" class="status">IN TRANSIT</span></div>
-      <div class="tracking-code"><span>TRACKING NUMBER</span><b id="trackingCode">GT-000000</b><button id="copyCode" title="Copy tracking number">▢</button></div>
-      <div class="route-pair"><div><span class="dot origin"></span><div><small>FROM</small><b id="originName">Origin</b><span id="originCountry"></span></div></div><div class="route-arrow">→</div><div><span class="dot destination"></span><div><small>TO</small><b id="destinationName">Destination</b><span id="destinationCountry"></span></div></div></div>
-      <div class="progress-block"><div class="progress-label"><span>Journey progress</span><b id="progressText">0%</b></div><div class="progress-track"><div id="progressBar"></div></div><div class="progress-meta"><span id="elapsedText">Started just now</span><span id="remainingText">10 days left</span></div></div>
-      <div class="stats-grid"><div class="stat"><span>TRANSPORT</span><b id="transportText">🚚 Road</b></div><div class="stat"><span>DURATION</span><b id="durationText">10 days</b></div><div class="stat"><span>EST. ARRIVAL</span><b id="arrivalText">—</b></div><div class="stat"><span>MAP STATUS</span><b id="locationText">On route</b></div></div>
-      <div class="timeline-heading"><h3>Journey timeline</h3><span>SIMULATED</span></div><div id="timeline" class="timeline"></div>
-      <p class="disclaimer">Demo simulation: the marker follows a planned route and elapsed time. It is not live GPS or proof of a real shipment.</p>
-    </aside>
-    <section class="map-column"><div class="map-toolbar"><div><span class="live-dot"></span><b>Journey map</b><small id="mapSubtitle">Following planned route</small></div><div class="map-controls"><button id="fitRoute" class="icon-btn" title="Fit route">⛶</button><button id="pauseBtn" class="secondary small">Pause</button></div></div><div id="map"></div><div class="map-footer"><div><span class="legend-line"></span><span>Planned route</span></div><div><span class="legend-dot"></span><span>Simulated position</span></div><div id="lastUpdated">Updates while this page is open</div></div><div class="map-note">Map and route data © OpenStreetMap contributors. Route availability depends on transport mode and the routing service.</div></section>
-  </div>
+<section class="hero">
+ <div class="hero-copy"><div class="eyebrow"><span class="pulse"></span> ONE JOURNEY. EVERY MILE.</div><h1>Your world,<br><em>in transit.</em></h1><p class="hero-text">Follow your shipment across borders, oceans and roads with one clear view of its journey.</p>
+ <form class="track-form" id="trackForm"><label for="trackingInput">TRACKING NUMBER</label><div class="input-row"><span class="search-icon">⌕</span><input id="trackingInput" placeholder="Enter your tracking number" autocomplete="off" required><button type="submit">Track shipment <span>→</span></button></div><p class="form-note">Have a tracking number? Your journey starts here.</p></form>
+ <div class="trust-row"><span>✦ AIR</span><span>✦ SEA</span><span>✦ ROAD</span><span>✦ MULTI-LEG</span></div></div>
+ <div class="hero-visual"><div class="map-card"><div class="map-top"><span><i class="live-dot"></i> GLOBAL NETWORK</span><span class="map-tag">WORLDWIDE</span></div><div class="map-art"><div class="map-grid"></div><svg viewBox="0 0 600 380" role="img" aria-label="Illustrated global shipping route"><defs><linearGradient id="route" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#67e8d0"/><stop offset="1" stop-color="#5d9dff"/></linearGradient></defs><path class="continent" d="M55 78l32-22 38 8 20 23 32 8 5 25-19 17 4 28-25 16-9 35-23-3-15-28-23-12-4-30-20-14 6-26z M182 213l24 6 17 24-7 36-17 28-12 37-16-18 3-31-12-28 7-29z M282 83l35-19 36 8 21 18 31-2 24 17 22-1 25 19-14 17-28-3-20 21-19 2-9 27-25 5-11 24-20-8-9-30-18-12-4-24-23-13-6-24-18-9z M333 221l27-9 30 14 13 26-12 30-26 15-20-15-16-29z M460 265l24-13 31 11 9 20-19 16-30-3z" />
+<path class="route-line" d="M112 122 Q210 20 310 111 T470 268" /><circle cx="112" cy="122" r="7" class="route-point"/><circle cx="310" cy="111" r="7" class="route-point"/><circle cx="470" cy="268" r="7" class="route-point"/><g class="plane-symbol" transform="translate(258 86) rotate(20)"><path d="M0-13 L4-2 L18 5 L18 9 L4 6 L3 16 L-1 16 L-3 5 L-17 9 L-17 5 L-4-2 L-4-13 Z"/></g></svg><div class="map-label label-a"><b>NEW YORK</b><small>Origin</small></div><div class="map-label label-b"><b>MADRID</b><small>Transit</small></div><div class="map-label label-c"><b>LAGOS</b><small>Destination</small></div></div><div class="map-bottom"><div><span class="mini-icon">✈</span><span><b>Multi-modal journeys</b><small>Air · Sea · Road</small></span></div><span class="map-arrow">↗</span></div></div><div class="floating-card"><span class="float-icon">⌁</span><div><b>One tracking number</b><small>Across every leg of the journey</small></div></div></div>
 </section>
-<section id="adminView" class="view hidden">
-  <div class="hero admin-hero"><div><p class="eyebrow">CONTROL CENTER</p><h1>Shipment management.</h1><p class="sub">Create a journey, set its duration and share its tracking number.</p></div><div class="hero-pill">🔐 Admin access</div></div>
-  <div id="loginPanel" class="panel login-panel"><div class="login-symbol">⌑</div><h2>Admin sign in</h2><p>Sign in to create and manage simulated journeys.</p><form id="loginForm"><label>Admin password<input id="adminPassword" type="password" placeholder="Enter admin password" required></label><button class="primary full" type="submit">Sign in securely →</button><p id="loginMessage" class="form-message"></p></form><p class="hint">After deployment, set <code>ADMIN_PASSWORD</code> in Netlify environment variables. Local preview uses the demo password shown in README.</p></div>
-  <div id="adminDashboard" class="hidden">
-    <div class="admin-actions"><div><h2>Your shipments</h2><p>Manage routes and tracking settings.</p></div><div class="action-buttons"><button id="newShipmentBtn" class="primary">＋ New shipment</button><button id="logoutBtn" class="secondary">Sign out</button></div></div>
-    <div class="admin-stats"><div class="panel"><span>TOTAL SHIPMENTS</span><b id="totalCount">0</b></div><div class="panel"><span>IN TRANSIT</span><b id="transitCount">0</b></div><div class="panel"><span>COMPLETED</span><b id="completedCount">0</b></div></div>
-    <div class="panel table-panel"><div class="table-wrap"><table><thead><tr><th>SHIPMENT</th><th>ROUTE</th><th>DURATION</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody id="shipmentRows"></tbody></table></div><div id="noShipments" class="no-shipments">No shipments yet. Create your first journey.</div></div>
-  </div>
-</section>
-</main>
-<div id="shipmentModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-backdrop" data-close="modal"></div><div class="modal-card"><div class="modal-heading"><div><p class="eyebrow">JOURNEY SETUP</p><h2 id="modalTitle">Create a shipment</h2></div><button class="close-btn" data-close="modal" aria-label="Close">×</button></div>
-<form id="shipmentForm" class="shipment-form">
-<input type="hidden" id="editId">
-<div class="form-grid"><label>Goods / item name<input id="goodsName" placeholder="e.g. Bakery order" required maxlength="90"></label><label>Tracking number<input id="goodsTracking" placeholder="Auto-generated if blank" maxlength="40"></label>
-<label>Starting location<input id="startLocation" placeholder="e.g. Yenagoa, Bayelsa, Nigeria" required></label><label>Destination<input id="endLocation" placeholder="e.g. Abuja, Nigeria" required></label>
-<label>Transport mode<select id="transportMode"><option value="car">🚗 Car</option><option value="motorcycle">🏍️ Motorcycle</option><option value="truck">🚚 Truck</option><option value="ship">🚢 Ship</option><option value="plane">✈️ Plane</option><option value="walking">🚶 Walking / local delivery</option></select></label>
-<label>Journey duration<input id="durationDays" type="number" min="0.01" max="3650" step="any" value="10" required><small>Duration in days. Fractions are allowed.</small></label>
-<label>Start date and time<input id="startAt" type="datetime-local" required></label><label>Visibility<select id="visibility"><option value="public">Public tracking by ID</option><option value="private">Private (admin only)</option></select></label>
-<label class="wide">Optional note<textarea id="goodsNote" rows="2" placeholder="e.g. Fragile goods, customs stop planned"></textarea></label></div>
-<div id="geocodeMessage" class="form-message"></div><div class="modal-actions"><button type="button" class="secondary" data-close="modal">Cancel</button><button type="submit" class="primary" id="saveShipmentBtn">Find route & save →</button></div>
-<p class="hint">The map route is a visual estimate. Road routing uses public routing services; sea and air journeys may be shown as a direct route unless a suitable route is available.</p>
-</form></div></div>
-<div id="toast" class="toast" role="status"></div>
-<footer><span>GlobalTrack</span><span>Journey simulation prototype · Not a live carrier tracking service</span></footer>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="app.js"></script>
+<section class="metrics"><div><strong>01</strong><span>One shipment ID</span></div><div><strong>03</strong><span>Transport modes</span></div><div><strong>24/7</strong><span>Journey visibility</span></div><div><strong>∞</strong><span>Possible routes</span></div></section>
+<section class="track-result-section" id="tracking"><div class="section-heading"><div><div class="eyebrow dark">YOUR SHIPMENT, AT A GLANCE</div><h2>Every stop.<br><em>Every step.</em></h2></div><p>Enter your tracking number above to view the route, transport stages, and estimated arrival in one place.</p></div><div class="empty-state" id="emptyState"><div class="empty-icon">⌖</div><h3>Your journey will appear here</h3><p>Track a shipment to see its map, route details and journey timeline.</p></div><div id="resultPanel" class="result-panel hidden"></div></section>
+<section class="how-section" id="how"><div class="eyebrow dark">BUILT AROUND YOUR JOURNEY</div><h2>From pickup to <em>arrival.</em></h2><div class="feature-grid"><article><span class="feature-icon">⌖</span><h3>See the route</h3><p>Follow the planned path between each origin, transit point and destination.</p></article><article><span class="feature-icon">⇄</span><h3>Follow every mode</h3><p>Air, sea and road stages can be combined under one tracking number.</p></article><article><span class="feature-icon">◷</span><h3>Know what’s next</h3><p>Check journey status, estimated arrival and the next stage at a glance.</p></article></div></section>
+</main><footer><a class="brand footer-brand" href="#"><span class="brand-mark">G<span>↗</span></span><span>global<span class="brand-light">track</span><small>SHIPMENT VISIBILITY</small></span></a><span>Clarity for every mile.</span><span>© <span id="year"></span> GlobalTrack</span></footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="app.js"></script>
 </body></html>

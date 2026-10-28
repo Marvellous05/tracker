@@ -1,9 +1,1 @@
-{
-  "name": "globaltrack",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Configurable shipment journey simulator",
-  "dependencies": {
-    "@netlify/blobs": "^8.1.0"
-  }
-}
+{"name":"globaltrack","version":"2.0.0","private":true,"description":"GlobalTrack responsive shipment tracking and multi-stage admin portal","dependencies":{"@netlify/blobs":"^8.1.0"},"scripts":{"start":"npx netlify dev"}}

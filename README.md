@@ -1,50 +1,42 @@
-# GlobalTrack shipment movement simulator
+# GlobalTrack
 
-A responsive static website with an interactive OpenStreetMap, route lookup, animated journey marker, configurable journey duration, tracking-number lookup, and an admin interface. **This is a route/time simulator, not real GPS tracking.** It does not verify that physical goods exist or are at the displayed location.
+A polished, responsive shipment tracking website plus a separate admin portal. Supports multi-stage journeys using air, sea, road, bus, car and train. This app calculates a scheduled position from the start time and stage durations; it does not receive live GPS or carrier telemetry.
 
-## Run locally
+## Files
+- Main public site: root (`index.html`, `styles.css`, `app.js`)
+- Separate admin site: `admin/`
+- Shared API/backend: `netlify/functions/`
+- Persistent shipment records: Netlify Blobs
 
-1. Unzip the project.
-2. Open `index.html` in a browser, or preferably use VS Code's Live Server extension.
-3. Choose **Admin portal** and sign in with local preview password `demo1234`.
-4. Create a shipment with origin, destination, transport mode, duration and start time.
-5. Use the generated tracking number on the public Track shipment page.
+## Deploy the main site
+1. Upload this project to a GitHub repository.
+2. Import that repository into Netlify.
+3. Build command: `npm install`
+4. Publish directory: `.`. Functions directory: `netlify/functions`.
+5. Set environment variables in Netlify Project configuration:
+   - `ADMIN_PASSWORD`: strong unique admin password
+   - `SESSION_SECRET`: a separate random secret of at least 32 characters
+   - `ADMIN_ORIGIN`: optional, set to the exact admin-site origin once deployed, e.g. `https://your-admin-site.netlify.app`
+6. Redeploy after setting variables.
 
-Local preview stores shipments in the current browser's `localStorage`; they are not shared with other devices and the local demo password is not secure. Do not use local-preview mode for private or real customer data.
+## Deploy admin separately
+Create a second Netlify site from the same Git repository. Configure:
+- Base directory: `admin`
+- Publish directory: `.`
+- Build command: leave blank (or `npm install` if Netlify asks)
+- Functions are not needed on the admin site.
 
-## Deploy to Netlify with shared persistence
+After deploying the main site, set the admin website's API base URL. Open the admin site, open browser developer tools Console and run:
+`localStorage.setItem('globaltrack_api_base','https://YOUR-MAIN-SITE.netlify.app')`
+Then refresh. Replace the example with the actual main-site URL. This is a one-time per browser setup in this starter build. For a polished production setup, configure `API_BASE` in `admin/admin.js` before deployment instead.
 
-1. Create a GitHub repository and upload all project files, including the `netlify` folder, `netlify.toml`, and `package.json`.
-2. In Netlify, import the repository as a new site. Publish directory: `.`. Functions directory: `netlify/functions` (already set in `netlify.toml`).
-3. In **Site configuration → Environment variables**, set:
-   - `ADMIN_PASSWORD`: a long, unique admin password.
-   - `SESSION_SECRET`: a separate random secret, at least 32 random characters.
-   Set these for Functions/Builds as applicable, then redeploy.
-4. Netlify Functions use Netlify Blobs for shared shipment storage. The included `package.json` lists `@netlify/blobs`; Netlify installs dependencies during build. The admin login endpoint signs a time-limited token and the shipment write/delete endpoint checks it.
-5. Test admin login, create a test shipment, then open the site's public URL in a private/incognito window and track its ID.
+For CORS, set `ADMIN_ORIGIN` on the main site's environment variables to the exact admin site URL, then redeploy the main site. Do not use a trailing slash.
 
-### Important deployment notes
+## Remove Netlify branding badge
+In Netlify open the relevant site -> Project configuration -> General -> Powered by Netlify badge -> turn it off -> Save. This is a per-site setting and takes effect without redeploying.
 
-- The Netlify-hosted version stores shipment records in Netlify Blobs, so the same records can be read across visitors. Confirm current Netlify plan and Blobs usage limits before relying on it for production.
-- Keep `ADMIN_PASSWORD` and `SESSION_SECRET` private. Never put secrets in `app.js` or any public file.
-- This starter uses one admin password, not multiple user accounts, password reset, rate limiting, or a full audit log. For a public commercial service, add stronger authentication and abuse protection before launch.
-- Public tracking endpoints intentionally omit private shipments. Admin API access is protected by a signed, expiring token.
-- Maps use OpenStreetMap tiles, Nominatim geocoding and the public OSRM routing demo service. These public services have usage policies and are not guaranteed SLAs. For heavy/production traffic, use a provider and plan appropriate to your traffic. Avoid repeated high-volume geocoding requests.
-- Road-like modes (car, motorcycle, truck, walking) request a route from OSRM. The public demo routing service does not distinguish truck or motorcycle restrictions. Plane/ship use a straight-line route in this first version. The marker animates along the selected route over the specified duration, even if that duration is not a physically realistic travel time.
-- The website needs an internet connection for map tiles, geocoding and route lookup.
-- No real GPS, carrier API, customs status, or delivery confirmation is connected.
-
-## Main files
-
-- `index.html`: customer tracking page, admin login/dashboard and shipment form.
-- `styles.css`: responsive layout.
-- `app.js`: form handling, map, route, progress simulation and local preview fallback.
-- `netlify/functions/login.js`: admin login and signed session token.
-- `netlify/functions/shipments.js`: public reads and protected writes using Netlify Blobs.
-
-## Troubleshooting
-
-- If the admin login reports missing environment variables after deployment, add both variables in Netlify and redeploy.
-- If map routes fail, check internet access and try a more specific location such as `Yenagoa, Bayelsa, Nigeria`.
-- If a map provider is rate-limiting requests, wait before trying again. Public demo services are not guaranteed.
-- Netlify Functions require a Netlify deployment or Netlify Dev; opening `index.html` directly runs local preview mode.
+## Important
+- This is scheduled simulated tracking, not real-time GPS or verified carrier tracking. Don't represent the simulated marker as a verified live location.
+- Map tiles and place lookup use OpenStreetMap/Nominatim. Road routes use OSRM's public demo routing service. Public endpoints have usage limits and are not guaranteed for commercial-scale production.
+- Keep `ADMIN_PASSWORD` and `SESSION_SECRET` only in Netlify environment variables. Never put secrets in GitHub or browser JavaScript.
+- The sample tracking record is a local preview convenience; remove it from `app.js` before presenting the site as a live customer service. Real shipments are managed through the admin backend.

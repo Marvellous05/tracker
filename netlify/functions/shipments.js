@@ -1,25 +1,24 @@
-const crypto=require("node:crypto");
+const crypto=require("crypto");
 const {getStore}=require("@netlify/blobs");
-function reply(statusCode,body){return {statusCode,headers:{"Content-Type":"application/json","Cache-Control":"no-store"},body:JSON.stringify(body)}}
-function authorized(event){try{const secret=process.env.SESSION_SECRET;if(!secret)return false;const h=event.headers.authorization||event.headers.Authorization||"";const token=h.replace(/^Bearer\s+/i,"");const [payload,sig]=token.split(".");if(!payload||!sig)return false;const expected=crypto.createHmac("sha256",secret).update(payload).digest("base64url");const a=Buffer.from(sig),b=Buffer.from(expected);if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return false;const data=JSON.parse(Buffer.from(payload,"base64url").toString());return data.role==="admin"&&data.exp>Date.now()}catch{return false}}
-async function readAll(store){return await store.get("shipments",{type:"json"})||[]}
+function headers(){return {"Content-Type":"application/json","Access-Control-Allow-Origin":process.env.ADMIN_ORIGIN||"*","Access-Control-Allow-Headers":"Content-Type, Authorization","Access-Control-Allow-Methods":"GET, POST, DELETE, OPTIONS"}}
+function response(status,body){return {statusCode:status,headers:headers(),body:JSON.stringify(body)}}
+function validToken(token,secret){try{const [payload,sig]=token.split(".");const expected=crypto.createHmac("sha256",secret).update(payload).digest("base64url");if(sig!==expected)return false;return JSON.parse(Buffer.from(payload,"base64url").toString()).exp>Date.now()}catch{return false}}
 exports.handler=async(event)=>{
+ if(event.httpMethod==="OPTIONS")return {statusCode:204,headers:headers(),body:""};
  const store=getStore("globaltrack-shipments");
- if(event.httpMethod==="GET"){
-   const id=event.queryStringParameters?.id;
-   if(id){const all=await readAll(store);const s=all.find(x=>x.id===id);if(!s||s.visibility==="private")return reply(404,{error:"Not found"});return reply(200,{shipment:publicRecord(s)})}
-   const all=await readAll(store);const visible=authorized(event)?all:all.filter(s=>s.visibility!=="private");return reply(200,{shipments:visible.map(publicRecord)})
- }
- if(!authorized(event))return reply(401,{error:"Unauthorized"});
- if(event.httpMethod==="POST"){
-   let s;try{s=JSON.parse(event.body||"{}")}catch{return reply(400,{error:"Invalid JSON"})}
-   if(!s.id||!s.tracking||!s.start||!s.end||!Number.isFinite(Number(s.durationDays))||Number(s.durationDays)<=0||!s.startAt)return reply(400,{error:"Missing or invalid shipment fields"});
-   const all=await readAll(store);if(all.some(x=>x.tracking===s.tracking&&x.id!==s.id))return reply(409,{error:"Tracking number already exists"});
-   const i=all.findIndex(x=>x.id===s.id);if(i>=0)all[i]=s;else all.unshift(s);await store.setJSON("shipments",all);return reply(200,{shipment:s});
- }
- if(event.httpMethod==="DELETE"){
-   const id=event.queryStringParameters?.id;if(!id)return reply(400,{error:"Missing id"});const all=await readAll(store);await store.setJSON("shipments",all.filter(x=>x.id!==id));return reply(200,{ok:true});
- }
- return reply(405,{error:"Method not allowed"});
+ const q=event.queryStringParameters||{};
+ try{
+  if(event.httpMethod==="GET"){
+   const key=q.trackingNumber;
+   if(key){const shipment=await store.get(key.toUpperCase(),{type:"json"});return shipment?response(200,{shipment}):response(404,{error:"Shipment not found"})}
+   const auth=(event.headers.authorization||event.headers.Authorization||"").replace(/^Bearer\s+/i,"");
+   if(!process.env.SESSION_SECRET||!validToken(auth,process.env.SESSION_SECRET))return response(401,{error:"Please sign in again."});
+   const {blobs}=await store.list();const shipments=[];for(const b of blobs){const s=await store.get(b.key,{type:"json"});if(s)shipments.push(s)}shipments.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));return response(200,{shipments});
+  }
+  const auth=(event.headers.authorization||event.headers.Authorization||"").replace(/^Bearer\s+/i,"");
+  if(!process.env.SESSION_SECRET||!validToken(auth,process.env.SESSION_SECRET))return response(401,{error:"Admin access required."});
+  if(event.httpMethod==="POST"){const body=JSON.parse(event.body||"{}"),s=body.shipment;if(!s||!s.trackingNumber||!s.origin||!s.destination||!Array.isArray(s.legs)||!s.legs.length)return response(400,{error:"Shipment details and at least one stage are required."});s.trackingNumber=String(s.trackingNumber).toUpperCase().replace(/[^A-Z0-9-]/g,"");await store.setJSON(s.trackingNumber,s);return response(200,{shipment:s})}
+  if(event.httpMethod==="DELETE"){if(!q.trackingNumber)return response(400,{error:"Tracking number required."});await store.delete(q.trackingNumber.toUpperCase());return response(200,{ok:true})}
+  return response(405,{error:"Method not allowed"});
+ }catch(e){return response(500,{error:"Server error. Check Netlify function logs."})}
 };
-function publicRecord(s){const {id,name,tracking,start,end,startCoords,endCoords,startLabel,endLabel,mode,durationDays,startAt,visibility,note,createdAt}=s;return {id,name,tracking,start,end,startCoords,endCoords,startLabel,endLabel,mode,durationDays,startAt,visibility,note,createdAt}}
